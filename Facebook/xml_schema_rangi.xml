@@ -1,0 +1,37 @@
+<text id="text_id" source_id="input_file" title="title">
+  <metadata idref="text_id">
+    <!-- incorporate OLAC metadata standard -->
+  </metadata>
+<body>
+  <thread id="thread_id">
+    <comment id="thread_id.comment_id" idref="thread_id">
+      <author id="author_id" idref="thread_id.comment_id" url="author_href">
+        author_name
+      </author>
+      <timestamp id="thread_id.comment_id.timestamp_id" \
+        idref="thread_id.comment_id" utime="utime">
+        time_readable
+      </timestamp>
+      <likes id="thread_id.comment_id.like_id" idref="thread_id.comment_id">
+        <like_author id="author_id" idref="thread_id.comment_id.like_id" \
+          url="like_href">
+          author_name
+        </like_author>
+        <likes_total idref="thread_id.comment_id.like_id">
+          likes_total
+        </likes_total>
+      </likes>
+      <source id="source_id" idref="thread_id.comment_id">
+        mobile
+      </source>
+      <plaintext>
+        message_text
+      </plaintext>
+      <phrase id="thread_id.comment_id.phrase_id" \
+        idref="thread_id.comment_id" text="phrase" />
+      <word id="thread_id.comment_id.word_id" \
+        idref="thread_id.comment_id" text="word" />
+    </comment>
+  </thread>
+</body>
+</text>
