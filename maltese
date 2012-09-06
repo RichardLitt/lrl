@@ -1,0 +1,45 @@
+import sys
+import random
+import re
+
+file = open('English-Maltese Dictionary.html', 'r+')
+
+def sort():
+    dict = []
+    for line in file.readlines():
+        line = line.strip().split('   ')
+        if len(line) == 3:
+            dict.append(line)
+    return dict
+
+def printout(language,amount):
+    dict = sort()
+    if language == 'list':
+        print 'English\t\tMaltese\t\tPhonetics'
+        for x in range(amount):
+            entry = '\t'.join(dict[random.randrange(len(dict))])
+            print entry
+
+def search(language, word):
+    dict = sort()
+    for line in dict:
+            if language == 'm': search_line = line[1]
+            if language == 'e': search_line = line[0]
+            pattern = re.compile(word, re.IGNORECASE)
+            for x in range(len(search_line.split())):
+                match_o = re.match(pattern, search_line.split()[x])
+                if (match_o != None):
+                    print '\t'.join(line)
+
+if __name__ == "__main__":
+    language = sys.argv[1]
+    if language == 'list':
+        amount = int(sys.argv[2])
+        printout('list',amount)
+    if language == 'm':
+        search('m',sys.argv[2])
+    if language == 'e':
+        search('e',sys.argv[2])
+
+
+
