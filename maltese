@@ -71,7 +71,7 @@ if __name__ == "__main__":
                 file = open('English-Maltese Dictionary.html', 'r+')
             except: 
                 print ' I couldn\'t find the dictionary. \
-                Ma stajtx insib din id-dizzjunaru.'
+                Ma stajtx insib din id-dizzjunarju.'
 
         language = sys.argv[1]
 
