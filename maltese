@@ -1,27 +1,50 @@
+#########################
+# This uses an online dictionary of Maltese - English and makes a little
+# terminal-side random flashcard and lookup tool. As the dictionary is
+# copyrighted, one can either download it locally or just use the script here
+# as is to access the website if you have internet. The script will check if
+# you have internet or not.
+#
+# No copyright. Released into the wild by Richard Littauer.
+#########################
+
+# Import some modules!
 import sys
 import random
 import re
+import urllib2
 
-file = open('English-Maltese Dictionary.html', 'r+')
+# Test if the internet is on or not using Google.
+# From: http://stackoverflow.com/questions/3764291/checking-network-connection
+def internet_on():
+    try:
+        response = urllib2.urlopen('http://74.125.113.99',timeout=1)
+        return True
+    except urllib2.URLError as err: pass
+    return False
 
+# Just sorts the dictionary roughly, cleaning out the extra html.
 def sort():
     dict = []
-    for line in file.readlines():
+    for line in file:
         line = line.strip().split('   ')
         if len(line) == 3:
             dict.append(line)
     return dict
 
+# For flashcards of random words
 def printout(language,amount):
     dict = sort()
     if language == 'list':
         print 'English\t\tMaltese\t\tPhonetics'
         for x in range(amount):
             entry = '\t'.join(dict[random.randrange(len(dict))])
-            print entry
+            print '', entry
 
+# For searching for specific english or maltese words.
 def search(language, word):
     dict = sort()
+    find = False
     for line in dict:
             if language == 'm': search_line = line[1]
             if language == 'e': search_line = line[0]
@@ -29,17 +52,36 @@ def search(language, word):
             for x in range(len(search_line.split())):
                 match_o = re.match(pattern, search_line.split()[x])
                 if (match_o != None):
-                    print '\t'.join(line)
+                    print '','\t'.join(line)
+                    find = True
+    if find == False:
+        print " I couldn't find this word. Ma stajtx insib din il-kelma."
 
 if __name__ == "__main__":
-    language = sys.argv[1]
-    if language == 'list':
-        amount = int(sys.argv[2])
-        printout('list',amount)
-    if language == 'm':
-        search('m',sys.argv[2])
-    if language == 'e':
-        search('e',sys.argv[2])
+    try:
+        if internet_on() == True:
+            # These grab the html from the website directly, if you don't want to
+            # store the dictionary locally.
+            u = urllib2.urlopen('http://aboutmalta.com/language/engmal.htm') 
+            file = map(str,u.readlines()) #Gets the html for real
+        if internet_on() == False:
+            # This uses a local file, which should be renamed to whatever you
+            # download it as.
+            try:
+                file = open('English-Maltese Dictionary.html', 'r+')
+            except: 
+                print ' I couldn\'t find the dictionary. \
+                Ma stajtx insib din id-dizzjunaru.'
 
+        language = sys.argv[1]
 
-
+        # The three options: flashcard lists, or search
+        if language == 'list':
+            amount = int(sys.argv[2])
+            printout('list',amount)
+        if language == 'm':
+            search('m',sys.argv[2])
+        if language == 'e':
+            search('e',sys.argv[2])
+    except IndexError:
+        print ' This didn\'t work. Ma riditx tmur.'
