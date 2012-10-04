@@ -1,20 +1,23 @@
 lrl
 ===
 
-For work concerning low resource languages.
+For script work concerning low resource languages. This does not include
+visualisations, Semantic Web data, or other random scripts that can be
+found in my other repositories. 
+
+Facebook
+--------
+
+The Facebook scripts in here are for non-automatically harvesting data
+from Facebook groups, using manual AJAX querying and saving the source
+from the browser. It is not an automatic data collection scheme, nor a
+scraper, which makes it legal (afaik). A paper based is currently in
+progress. 
 
 Maltese
 -------
-The Maltese dictionary script works by looking up Maltese or English
-words in an online dictionary. To run, save the file onto your computer. Then, `cd` to the folder where the file is on your computer: for instance, `cd Desktop/`. Then, run these commands:
 
-    python maltese.py e bear
-    python maltese.py m ors
-    python maltese.py list 10
-
-And you should see the output and be able to go from there. I also
-suggest setting up an alias:
-
-    ln -s /path/to/file/maltese.py /usr/bin/maltese
-
-
+I have developed a GUI and terminal-side dictionary program based on
+word lists I have access to; one from the internet, and a cleaned-up
+copy available via METASHARE on a CC BY-NC-SA license. I will presumably
+keep working on this throughout my time in Malta. 
