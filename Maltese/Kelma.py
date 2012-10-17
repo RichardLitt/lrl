@@ -1,36 +1,40 @@
-### Notes:
-### You're trying to install the new dictionary
-### To switch back. 
-### Turn internet to True
-### Rename old dictionary back
-### open file without using URLlib
-### edit the bottom __main__
-
 #!/Library/Frameworks/Python.framework/Versions/Current/bin/python
+
 #####################################################################
-# This uses an online dictionary of Maltese - English and makes a little
-# terminal-side random flashcard and lookup tool. As the dictionary is
-# copyrighted, one can either download it locally or just use the script here
-# as is to access the website if you have internet. The script will check if
-# you have internet or not.
+# This uses an XML dictionary of Maltese - English and makes a little
+# dictionary application with a GUI. 
 #
-# WTFPL copyright. Released into the wild by Richard Littauer. 
+# Created and maintained by Richard Littauer.
+# Code under Creative Commons BY-SA-NC 2012.
+# Available: https://github.com/RichardLitt/lrl
+# Contact: richard.littauer@gmail.com
+#
+# Dictionary from Grazio Falzon via Toni Sant.
+# Originally at http://www.aboutmalta.com/language/engmal.htm 
+#
+# Edited by Andrew Attard / Joan Joachimsen.
+# Content maintainer: andrew.attard@um.edu.mt
+#
+# Lexicon under META-SHARE Commons BY-NC, 2011
+# http://www.meta-share.eu
+#
 #####################################################################
 
 import sys
 import wx
-import random
 import re
-import urllib2
-from BeautifulSoup import BeautifulStoneSoup
-import string
 
+# Oh the beautiful, Beautiful Stone Soup XML Parser
+from BeautifulSoup import BeautifulStoneSoup
+
+# The following block is not needed anymore given the new dictionary. But I
+# decided that it should at least be kept for Posterity.
 ############################################################
 # Test if the internet is on or not using Google.
 # From: http://stackoverflow.com/questions/3764291/checking-network-connection
 ############################################################
+
 '''
-# Not needed anymore given the new dictionary
 def internet_on():
     try:
         response = urllib2.urlopen('http://74.125.113.99',timeout=1)
@@ -57,13 +61,7 @@ if internet_on() == False:
                 print ' I couldn\'t find the dictionary. \
                 Ma stajtx insib din id-dizzjunarju.'
             status = 'off'
-'''
 
-# Stops this damn 'None' from appearing. Couldn't track it down.
-# http://stackoverflow.com/a/1034598/1166929
-def xtr(s): return '' if s is None else str(s)
-
-'''
 # Just sorts the dictionary roughly, cleaning out the extra html.
 def sort():
     dict = []
@@ -74,35 +72,45 @@ def sort():
     return dict
 '''
 
+# Stops needless looping
 def iterator():
     file = open('Basic Dictionary.xml', 'r+')
     bs = BeautifulStoneSoup(file)
     entries = bs.findAll('entry')
     return entries
 
+# Calls it once
 iterator = iterator()
 
+# This basically parses the XML file
 def souper(language, word, depth):
     out = []
+    # Stops needless reptition of grabbing the word
     reword = re.compile(word, re.IGNORECASE)
+    # If Maltese
     if language == 'm': 
         for entry in iterator:
             kelma = entry.findAll('quote')
             for kelm in kelma:
+                # If loosely searching
                 if depth == 'l':
                     match = re.search(reword, kelm.contents[0])
                     if match != None:
                         out += [entry]
+                # If searching based on the first letters
                 if depth == 'm':
                     match = re.match(reword, kelm.contents[0])
                     if match != None:
                         out += [entry]
+                # Exact matching
                 if depth == 'e':
                     if word == kelm.contents[0]:
                         out += [entry]
+    # If English
     if language == 'e':
         for entry in iterator:
             kelma = entry.find('orth')
+            # As above
             if depth == 'l':
                 match = re.search(reword, kelma.contents[0])
                 if match != None:
@@ -116,6 +124,7 @@ def souper(language, word, depth):
                     out += [entry]
     return out
 
+# This prints out the XML prettily in one line, or as good as.
 def printer(souper):
     find = False
     if souper != []:
@@ -145,15 +154,20 @@ def printer(souper):
     if find == False:
         print " I couldn't find this word. Ma stajtx insib din il-kelma."
 
-'''
-# For flashcards of random words
+''' 
+# Made irrelevant by the GUI. Needs to be worked back in in a feature
+
+# Prints out a list of random words
 def printout(language,amount):
-    dict = sort()
+    dict = sort() 
     if language == 'list':
         print 'English\t\tMaltese\t\tPhonetics'
         for x in range(amount):
             entry = '\t'.join(dict[random.randrange(len(dict))])
             print '', entry
+
+# Made obselete by the use of the cleaned-up XML file. Can be used for other
+# dictionaries. 
 
 # For searching for specific english or maltese words.
 def search(language, word):
@@ -178,6 +192,12 @@ def search(language, word):
     if find == False:
         print " I couldn't find this word. Ma stajtx insib din il-kelma."
 '''
+##################################################
+# Stops 'None' from appearing                    #
+# http://stackoverflow.com/a/1034598/1166929     #
+##################################################
+
+def xtr(s): return '' if s is None else str(s)
 
 ##################################################
 # From: redirectText.py, Created by Mike Driscoll#
@@ -191,13 +211,17 @@ class RedirectText(object):
     def write(self,string):
         self.out.WriteText(string)
 
+##################################################
+# Borrowed and edited from wxPython documentation.
+
 class MyForm(wx.Frame):
 
     def __init__(self):
         wx.Frame.__init__(self, None, wx.ID_ANY, "Maltese-English Dictionary",
                 size=(600,400))
- 
-        self.CreateStatusBar() # A StatusBar in the bottom of the window
+
+        # A StatusBar in the bottom of the window
+        self.CreateStatusBar() 
 
         # Setting up the menu.
         filemenu= wx.Menu()
@@ -210,7 +234,7 @@ class MyForm(wx.Frame):
         # wx.ID_ABOUT and wx.ID_EXIT are standard ids provided by wxWidgets.
         menuAbout = filemenu.Append(wx.ID_ABOUT, "&About"," Information about this program")
         menuExit = filemenu.Append(wx.ID_EXIT,"E&xit"," Terminate the program")
-        
+
         # Set events.
         self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
@@ -224,20 +248,23 @@ class MyForm(wx.Frame):
         self.word = wx.TextCtrl(panel, wx.ID_ANY, value='', pos=(40, 40), size=(140,20))
         self.Bind(wx.EVT_BUTTON, self.onButton, btn)
 
-        #Maltese or English
+        # Maltese or English
         self.rb1 = wx.RadioButton(panel, -1, 'Maltese', style=wx.RB_GROUP)
         self.rb2 = wx.RadioButton(panel, -1, 'English ')
         self.Bind(wx.EVT_RADIOBUTTON, self.SetVal, id=self.rb1.GetId())
         self.Bind(wx.EVT_RADIOBUTTON, self.SetVal, id=self.rb2.GetId())
-        #self.SetVal(True)
 
-        #Search depth
+        # Search depth
         self.rbd1 = wx.RadioButton(panel, -1, 'Exact ', style=wx.RB_GROUP)
         self.rbd2 = wx.RadioButton(panel, -1, 'Start ')
         self.rbd3 = wx.RadioButton(panel, -1, 'Entire')
         self.Bind(wx.EVT_RADIOBUTTON, self.SetVal, id=self.rbd1.GetId())
         self.Bind(wx.EVT_RADIOBUTTON, self.SetVal, id=self.rbd2.GetId())
         self.Bind(wx.EVT_RADIOBUTTON, self.SetVal, id=self.rbd3.GetId())
+
+        # Ideally, the values would be set so that you don't have to do it
+        # mannually each time. For both language and depth. 
+        #self.SetVal(True)
 
         # Add widgets to a sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -250,7 +277,11 @@ class MyForm(wx.Frame):
         sizer.Add(self.rb1, 0, wx.CENTER)
         sizer.Add(self.rb2, 0, wx.CENTER)
         sizer.Add(btn, 0, wx.ALL|wx.CENTER, 10)
+
+        # The Clear button isn't included at the moment - 
+        # This will be a future feature
         #sizer.Add(clearButton, 0, wx.ALL|wx.CENTER, 5)
+
         panel.SetSizer(sizer)
 
         # redirect text here
@@ -287,9 +318,19 @@ class MyForm(wx.Frame):
     def OnAbout(self,e):
         # A message dialog box with an OK button. wx.OK is a standard ID in wxWidgets.
         dlg = wx.MessageDialog( self, \
-        '\t Created by Richard Littauer.\n \
-        All actual information by someone else.\n \
-        Lincensed with a WTFPL License.\n \
+        '\tCreated and maintained by Richard Littauer.\n\
+        Contact: richard.littauer@gmail.com \n\
+        \n\
+        Dictionary from Grazio Falzon via Toni Sant.\n\
+        http://www.aboutmalta.com/language/engmal.htm \n\
+        \n\
+        Edited by Andrew Attard / Joan Joachimsen. \n\
+        Content maintainer: andrew.attard@um.edu.mt\n\
+        \n\
+        Lexicon under META-SHARE Commons BY-NC, 2011\n\
+        www.meta-share.eu \n\
+        \n\
+        Code under Creative Commons BY-SA-NC 2012.\n\
         https://github.com/RichardLitt/lrl', \
             "Maltese-English Dictionary", wx.OK)
         dlg.ShowModal() # Show it
