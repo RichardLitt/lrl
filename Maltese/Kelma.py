@@ -1,3 +1,11 @@
+### Notes:
+### You're trying to install the new dictionary
+### To switch back. 
+### Turn internet to True
+### Rename old dictionary back
+### open file without using URLlib
+### edit the bottom __main__
+
 #!/Library/Frameworks/Python.framework/Versions/Current/bin/python
 #####################################################################
 # This uses an online dictionary of Maltese - English and makes a little
@@ -14,15 +22,20 @@ import wx
 import random
 import re
 import urllib2
+from BeautifulSoup import BeautifulStoneSoup
+import string
 
 ############################################################
 # Test if the internet is on or not using Google.
 # From: http://stackoverflow.com/questions/3764291/checking-network-connection
 ############################################################
+'''
+# Not needed anymore given the new dictionary
 def internet_on():
     try:
         response = urllib2.urlopen('http://74.125.113.99',timeout=1)
-        return True
+        ##### Change back to True if you want to use the internet again
+        return False
     except urllib2.URLError as err: pass
     return False
 
@@ -37,17 +50,20 @@ if internet_on() == False:
             # This uses a local file, which should be renamed to whatever you
             # download it as.
             try:
-                file = open('English-Maltese Dictionary.html', 'r+')
+                #file = open('Basic Dictionary.xml', 'r+')
+                file = urllib2.urlopen('Basic Dictionary.xml')
                 local = True
             except: 
                 print ' I couldn\'t find the dictionary. \
                 Ma stajtx insib din id-dizzjunarju.'
             status = 'off'
+'''
 
 # Stops this damn 'None' from appearing. Couldn't track it down.
 # http://stackoverflow.com/a/1034598/1166929
 def xtr(s): return '' if s is None else str(s)
 
+'''
 # Just sorts the dictionary roughly, cleaning out the extra html.
 def sort():
     dict = []
@@ -56,7 +72,80 @@ def sort():
         if len(line) == 3:
             dict.append(line)
     return dict
+'''
 
+def iterator():
+    file = open('Basic Dictionary.xml', 'r+')
+    bs = BeautifulStoneSoup(file)
+    entries = bs.findAll('entry')
+    return entries
+
+iterator = iterator()
+
+def souper(language, word, depth):
+    out = []
+    reword = re.compile(word, re.IGNORECASE)
+    if language == 'm': 
+        for entry in iterator:
+            kelma = entry.findAll('quote')
+            for kelm in kelma:
+                if depth == 'l':
+                    match = re.search(reword, kelm.contents[0])
+                    if match != None:
+                        out += [entry]
+                if depth == 'm':
+                    match = re.match(reword, kelm.contents[0])
+                    if match != None:
+                        out += [entry]
+                if depth == 'e':
+                    if word == kelm.contents[0]:
+                        out += [entry]
+    if language == 'e':
+        for entry in iterator:
+            kelma = entry.find('orth')
+            if depth == 'l':
+                match = re.search(reword, kelma.contents[0])
+                if match != None:
+                    out += [entry]
+            if depth == 'm':
+                match = re.match(reword, kelma.contents[0])
+                if match != None:
+                    out += [entry]
+            if depth == 'e':
+                if kelma.contents[0].lower() == word:
+                    out += [entry]
+    return out
+
+def printer(souper):
+    find = False
+    if souper != []:
+        find = True
+        for entry in souper:
+            out = ''
+            out += entry.find('orth').contents[0].swapcase() + '......'
+            if entry.find('gen') != None:
+                out += entry.find('pos').contents[0].swapcase() + ' ('
+                out += entry.find('gen').contents[0].swapcase() + ')......'
+            else: 
+                try: out += entry.find('pos').contents[0].swapcase() + '......'
+                except: out += '...'
+            s = []
+            p = ''
+            senses = entry.findAll('sense')
+            if len(senses) != 1:
+                s = ''
+                for sense in senses:
+                    s += sense.find('quote').contents[0] \
+                    + ' [' + sense.find('pron').contents[0] + '], '
+                out += s.strip(', ')
+            if len(senses) == 1:
+                out += senses[0].find('quote').contents[0] \
+                + ' [' + senses[0].find('pron').contents[0] + ']'
+            print out
+    if find == False:
+        print " I couldn't find this word. Ma stajtx insib din il-kelma."
+
+'''
 # For flashcards of random words
 def printout(language,amount):
     dict = sort()
@@ -88,6 +177,7 @@ def search(language, word):
                         find = True
     if find == False:
         print " I couldn't find this word. Ma stajtx insib din il-kelma."
+'''
 
 ##################################################
 # From: redirectText.py, Created by Mike Driscoll#
@@ -141,11 +231,22 @@ class MyForm(wx.Frame):
         self.Bind(wx.EVT_RADIOBUTTON, self.SetVal, id=self.rb2.GetId())
         #self.SetVal(True)
 
+        #Search depth
+        self.rbd1 = wx.RadioButton(panel, -1, 'Exact ', style=wx.RB_GROUP)
+        self.rbd2 = wx.RadioButton(panel, -1, 'Start ')
+        self.rbd3 = wx.RadioButton(panel, -1, 'Entire')
+        self.Bind(wx.EVT_RADIOBUTTON, self.SetVal, id=self.rbd1.GetId())
+        self.Bind(wx.EVT_RADIOBUTTON, self.SetVal, id=self.rbd2.GetId())
+        self.Bind(wx.EVT_RADIOBUTTON, self.SetVal, id=self.rbd3.GetId())
+
         # Add widgets to a sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(text, 0, wx.LEFT|wx.TOP, 5)
         sizer.Add(self.word, 0, wx.ALL, 5)
         sizer.Add(log, 1, wx.ALL|wx.EXPAND, 10)
+        sizer.Add(self.rbd1, 0, wx.LEFT, 5)
+        sizer.Add(self.rbd2, 0, wx.LEFT, 5)
+        sizer.Add(self.rbd3, 0, wx.LEFT, 5)
         sizer.Add(self.rb1, 0, wx.CENTER)
         sizer.Add(self.rb2, 0, wx.CENTER)
         sizer.Add(btn, 0, wx.ALL|wx.CENTER, 10)
@@ -160,10 +261,21 @@ class MyForm(wx.Frame):
 
     # On the search function
     def onButton(self, event):
-        if self.rb1.GetValue() == True: 
-            print xtr(search('m', self.word.GetValue()))
-        else:
-            print xtr(search('e', self.word.GetValue()))
+        if self.rbd1.GetValue() == True:
+            if self.rb1.GetValue() == True: 
+                print xtr(printer(souper('m', self.word.GetValue(), 'e')))
+            else:
+                print xtr(printer(souper('e', self.word.GetValue(), 'e')))
+        if self.rbd2.GetValue() == True:
+            if self.rb1.GetValue() == True: 
+                print xtr(printer(souper('m', self.word.GetValue(), 'm')))
+            else:
+                print xtr(printer(souper('e', self.word.GetValue(), 'm')))
+        if self.rbd3.GetValue() == True:
+            if self.rb1.GetValue() == True: 
+                print xtr(printer(souper('m', self.word.GetValue(), 'l')))
+            else:
+                print xtr(printer(souper('e', self.word.GetValue(), 'l')))
 
     #def onClear(self, event):
     #    self.Clear(log)
